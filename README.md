@@ -1,20 +1,9 @@
-# This is my official golang sandbox repo
-- [ ] 1 - [A tour of go](https://go.dev/tour/)
+You may find some resources in [resource.md](/resources.md)
 
-- [ ] 2 - [Go by example](https://gobyexample.com/)
+## My Posts On X
 
-- [ ] 3 - [Effective Go](https://go.dev/doc/effective_go) (must read)
+1 - [Setup and entry points](https://x.com/orashus/status/2059721910754161037) (Nothing much)
 
-- [ ] 4 - Books from [Alex Edwards](https://www.alexedwards.net/books)
-    - [Let's go](https://lets-go.alexedwards.net/)
-    - [Let's go further](https://lets-go-further.alexedwards.net/)
+2 - [Became a Boot.dev member](https://x.com/orashus/status/2075039939356438694)
 
-- ### Carefully filtered resources from [Baselrabia's repo](https://github.com/baselrabia/Golang-Roadmap)
-
-- ### Go Beginer
-
-<img width="3448" height="4500" alt="image" src="https://github.com/user-attachments/assets/ed413928-7fb0-434c-8b80-7b90e7f0c1da" />
-
-- ### Go Advanced
-
-<img width="3268" height="8384" alt="image" src="https://github.com/user-attachments/assets/235377cc-2752-4f20-bcca-3ffc8860a612" />
+3 - [Naked Return Delima](https://x.com/orashus/status/2075553448787947675)

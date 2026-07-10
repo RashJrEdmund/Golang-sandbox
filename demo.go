@@ -41,7 +41,9 @@ func main() {
 	// Type casting is also used to convert a string to an int.
 
 	var str = "10"
-	var intNum int = int(str)
+	var intNum int = 10
 
 	fmt.Printf("intNum is of type %T\n", intNum)
+
+	fmt.Println("and here's the str", str)
 }
