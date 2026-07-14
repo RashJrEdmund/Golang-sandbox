@@ -20,3 +20,11 @@ func main() {
 
 	fmt.Println("Hello from main", c, a, b)
 }
+
+// type Person struct {
+// 	Name string
+// }
+
+// func (p Person) Speak() {
+// 	fmt.Println("Hi,", p.Name)
+// }
