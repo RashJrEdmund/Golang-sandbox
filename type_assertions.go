@@ -19,15 +19,15 @@ type Human interface {
 }
 
 type Person struct {
-	name string
-	age  int
+	age                int
+	name, phone, email string
 }
 
 func (p Person) sayHello(recipient string) {
 	fmt.Printf("Hello %s\n", recipient)
 }
 
-func (p Person) getDetails() (string, int) {
+func (p Person) getNameAndAge() (string, int) {
 	return p.name, p.age
 }
 
@@ -37,7 +37,7 @@ func saySomething(h Human) {
 	p, isPerson := h.(Person) // isPerson is a boolean that is true if h is a Person
 
 	if isPerson {
-		name, age := p.getDetails()
+		name, age := p.getNameAndAge()
 
 		fmt.Printf("My name is %s and I am %d years old\n", name, age)
 	}
