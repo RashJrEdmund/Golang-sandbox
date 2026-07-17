@@ -14,7 +14,7 @@ var (
 	mu    sync.RWMutex
 )
 
-const consoleSpace string = "---------------------------------"
+const consoleSpace string = "-----------------------------------"
 
 const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
