@@ -9,7 +9,7 @@ import "fmt"
  */
 
 func main() {
-	fmt.Println("\nHello, World!\n")
+	fmt.Println("\nHello, World!")
 	// This is explicit assignment, where the variable is declared, and the data type is specified.
 	// also explicit assignment with the "var" keyword allows you to modify the value later in the program.
 	var age int8 = 20
