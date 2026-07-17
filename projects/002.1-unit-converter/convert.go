@@ -29,7 +29,7 @@ func convert(value float64, from, to string) (float64, error) {
 
 func main() {
 	if len(os.Args) != 5 {
-		fmt.Println("usage: ./convert <value> <unit_from> to <unit_to>. example. ./convert 50 m to km")
+		fmt.Println("usage: ./convert <value> <unit_from> to <unit_to> // example. ./convert 50 m to km")
 		os.Exit(1)
 	}
 
