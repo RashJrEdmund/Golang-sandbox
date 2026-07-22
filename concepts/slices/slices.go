@@ -35,8 +35,9 @@ func main() {
 
 	mySlice := primes[:1] // prints [2]
 	mySlice = primes[4:]  // prints [11, 13, 17]
-	mySlice = primes[:]   // prints [2, 3, 5, 7, 11, 13, 17]
+	mySlice = primes[:]   // prints the whole thing
 	mySlice = primes[2:4] // prints [5, 7]
+	// mySlice = primes[4:2] // throws an error, invalid slice indices: 2 < 4
 
 	fmt.Println(mySlice)
 }

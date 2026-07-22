@@ -1,3 +1,8 @@
+/*
+X POST
+https://x.com/orashus/status/2079313100776329590
+*/
+
 package main
 
 import "fmt"

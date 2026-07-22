@@ -1,4 +1,9 @@
 /*
+X POST
+https://x.com/orashus/status/2079589069844054191
+*/
+
+/*
 * PANIC AND RECOVER
 * https://go.dev/blog/defer-panic-and-recover
 
