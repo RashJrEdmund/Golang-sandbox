@@ -10,7 +10,9 @@ Non-nil slices always have an underlying array, though it isn't always specified
 */
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func main() {
 	/*
@@ -40,4 +42,60 @@ func main() {
 	// mySlice = primes[4:2] // throws an error, invalid slice indices: 2 < 4
 
 	fmt.Println(mySlice)
+
+	fmt.Println("usingAppend(): ", usingAppend())
+	fmt.Println("usingMake(): ", usingMake())
+	fmt.Println("createMatrix(): ", createMatrix(3, 3))
+}
+
+type cost struct {
+	day   int
+	value float64
+}
+
+func usingAppend() []float64 {
+	res := []float64{}
+
+	res = append(res, 1.0)
+	res = append(res, 2.0)
+	res = append(res, 3.0)
+
+	return res
+}
+
+func usingMake() []float64 {
+	/*
+		make is a built-in function that creates a slice.
+		It takes the type of the slice, the length of the slice, and the capacity of the slice.
+		The capacity is the number of elements the slice can hold.
+		The length is the number of elements the slice currently holds.
+		The capacity is optional and defaults to the length.
+	*/
+
+	res := make([]float64, 3)
+	matrix := [][]int{}
+
+	fmt.Printf("matrix: %v\n", matrix)
+
+	res[0] = 1.0
+	res[1] = 2.0
+	res[2] = 3.0
+
+	return res
+}
+
+func createMatrix(rows, cols int) [][]int {
+	matrix := [][]int{}
+
+	for i := 0; i < rows; i++ {
+		rowVals := []int{}
+
+		for j := 0; j < cols; j++ {
+			rowVals = append(rowVals, i*j)
+		}
+
+		matrix = append(matrix, rowVals)
+	}
+
+	return matrix
 }
