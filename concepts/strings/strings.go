@@ -37,10 +37,11 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"unicode/utf8"
 )
 
-// %#U - Shows the code point’s Unicode value and its printed representation
+// %#U - Shows the code point’s Unicode value and its printed representation like this: U+0041 'A'
 
 func main() {
 	for _, r := range "Hello, 世界" {
@@ -49,6 +50,16 @@ func main() {
 	}
 
 	fmt.Printf("Bytes: %v\n", len("Hi 🦫"))
+
+	const word = "HiA012"
+
+	fmt.Printf("Word Contains \"Hi\" %t\n", strings.Contains(strings.ToLower(word), "hi"))
+
+	for i, rune := range []rune(word) {
+		fmt.Printf("%q %v %T %v\n", rune, rune, rune, word[i])
+	}
+
+	fmt.Printf("%v %v\n", []rune(word), int('A'))
 
 	// runForRangeLoop()
 }

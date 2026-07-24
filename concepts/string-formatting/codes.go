@@ -6,6 +6,7 @@ STRING FORMATTING VERBS:
 %v - value in default format
 %#v - value in Go syntax
 %+v - value in Go syntax with + prefix for positive numbers and - prefix for negative numbers.
+%t - boolean
 %T - type of value
 %d - decimal integer
 %b - binary integer
