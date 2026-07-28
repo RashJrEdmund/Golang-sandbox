@@ -12,6 +12,8 @@ package main
 
 import (
 	"fmt"
+	"reflect"
+	"slices"
 )
 
 func main() {
@@ -46,6 +48,12 @@ func main() {
 	fmt.Println("usingAppend(): ", usingAppend())
 	fmt.Println("usingMake(): ", usingMake())
 	fmt.Println("createMatrix(): ", createMatrix(3, 3))
+
+	// COMPARING SLICESS
+	fmt.Println("--------------------------------")
+	fmt.Println("compareArrays(): ", compareArrays())
+	fmt.Println("compareSlices(): ", compareSlices())
+	fmt.Println("--------------------------------")
 }
 
 type cost struct {
@@ -98,4 +106,73 @@ func createMatrix(rows, cols int) [][]int {
 	}
 
 	return matrix
+}
+
+func compareArrays() bool {
+	/*
+		In Go, an array's size is part of its type definition.
+		Because their sizes are fixed and known at compile time, Go allows you to use the == operator.
+	*/
+
+	array1 := [3]int{1, 2, 3}
+	array2 := [3]int{1, 2, 3}
+
+	fmt.Println("array1 == array2: ", array1 == array2)
+
+	return array1 == array2 // true
+}
+
+func compareSlices() bool {
+	/*
+		Slices ([]int) do not have a fixed size at compile time.
+		Because they are headers pointing to underlying arrays,
+			Go explicitly forbids using == to compare two slices.
+		If you try, the compiler will fail. To compare slices by value, you have three primary options:
+	*/
+
+	// OPTION A: Use slices.Equal (The Modern, Recommended Way)Starting in Go 1.21,
+	/*
+		the standard library includes the slices package.
+		The slices.Equal function checks if the lengths are identical and if all elements match by value.
+	*/
+	s1 := []int{1, 2, 3}
+	s2 := []int{1, 2, 3}
+
+	fmt.Println("slices.Equal(s1, s2): ", slices.Equal(s1, s2))
+
+	// OPTION B: Use slices.EqualFunc (for slices of Structs)
+	/*
+		If you have a slice of custom structs that cannot be compared with standard operators,
+		you can use slices.EqualFunc. This lets you pass a custom comparison function.
+	*/
+
+	type User struct {
+		ID   int
+		Tags []string // Tags is a slice and makes the struct non-comparable with ==
+	}
+
+	u1 := []User{{ID: 1, Tags: []string{"tag1", "tag2"}}}
+	u2 := []User{{ID: 1, Tags: []string{"tag1", "tag2"}}}
+
+	// Custom rule: users are equal if their IDs match
+	isEqual := slices.EqualFunc(u1, u2, func(a, b User) bool {
+		return a.ID == b.ID
+	})
+
+	fmt.Println("slices.EqualFunc(u1, u2): ", isEqual)
+
+	// OPTION C: Use reflect.DeepEqual (For Deeply Nested Data)
+	/*
+		If your slice contains deeply nested, complex data types (like maps inside slices),
+		you can use the reflect package.
+		However, avoid this unless necessary because it relies on runtime reflection,
+		making it significantly slower than slices.Equal.
+	*/
+
+	r1 := []interface{}{"apple", map[string]int{"a": 1}}
+	r2 := []interface{}{"apple", map[string]int{"a": 1}}
+
+	fmt.Println("reflect.DeepEqual(r1, r2): ", reflect.DeepEqual(r1, r2))
+
+	return true
 }
