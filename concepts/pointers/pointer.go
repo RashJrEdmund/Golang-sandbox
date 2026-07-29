@@ -36,7 +36,10 @@ X POST: https://x.com/orashus/status/2081988664091930964
 
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 func main() {
 	x := 42
@@ -53,8 +56,56 @@ func main() {
 	modifyValueAgain(p) // same as: modifyValueAgain(&x)
 
 	fmt.Println(x) // 200
+
+	message := "That's some fubbish shit"
+	removeProfanity(&message)
+	fmt.Println(message) // That's some ****ish shit
 }
 
 func modifyValueAgain(p *int) {
 	*p = 200
 }
+
+func removeProfanity(message *string) {
+	profaneWords := []string{"fubb", "shiz", "witch"}
+
+	fmt.Println(strings.Repeat("*", len(profaneWords[0]))) // That's some fubbish shit
+
+	for _, pw := range profaneWords {
+		fmt.Println(pw)
+		fmt.Println(strings.Repeat("*", len(pw)))
+
+		*message = strings.ReplaceAll(
+			*message,
+			pw,
+			strings.Repeat("*", len(pw)),
+		) // dereferences message to get the original value
+
+		fmt.Println(*message)
+	}
+}
+
+/* PASS BY REFERENCE:
+Functions in Go generally pass variables by value, which means the functions receives a copy of most non-composite types:
+	numbers, strings, booleans, etc.
+	However, composite types like slices, maps, and channels are passed by reference, which means the functions receives a pointer to the original variable.
+	When a function receives a value, it can modify the copy of the variable, but the original variable remains unchanged.
+	When a function receives a pointer, it can modify the original variable's value.
+*/
+
+/* FIELDS OF POINTERS:
+When your function receives a pointer to a struct, you might try to access a field like this and encounter an error:
+  total := *myStruct.MessageCount
+
+	To fix this, you need to dereference the pointer before accessing the field:
+		total := (*myStruct).MessageCount
+
+	Or you go the recommended way:
+		total := myStruct.MessageCount
+*/
+
+/*
+If a pointer points to nothing (the zero value of the pointer type is nil)
+then dereferencing it will cause a runtime error (a panic) that crashes the program.
+Generally speaking, whenever you're dealing with pointers you should check if it's nil before trying to dereference it.
+*/
