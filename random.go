@@ -1,6 +1,6 @@
 // USING THIS TO RUN RANDOM CODE AND SEE THE OUTPUT
 
-package main
+package random
 
 import "fmt"
 
@@ -24,5 +24,9 @@ func main() {
 	for i := 0; i < len("sd"); i++ {
 		fmt.Println("i", i)
 	}
+
+	a := []string{"1", "2", "3"}
+
+	a = append(a, []string{"4", "5", "6"}...)
 	// how
 }
