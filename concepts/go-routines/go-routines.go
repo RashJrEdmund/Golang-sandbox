@@ -8,7 +8,7 @@ They are used to implement concurrency in Go.
 They are created using the go keyword.
 
 They are started using the go keyword.
-
+processes
 They are stopped using the go keyword.
 */
 
@@ -64,4 +64,7 @@ func main() {
 
 /*
 go routines and wait groups is kinda like awaiting a Promise.All([]) in JavaScript.
+The total time of all the processes is simply the time taken to finish the most expensive one.
+Without go routines, the program will be synchronous and the total time will be an accumulation
+	of the durations of each order
 */
