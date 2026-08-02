@@ -3,6 +3,11 @@ X POST:
 https://x.com/orashus/status/2083577936368566364
 */
 /*
+CHANNEL AXIOMS:
+https://dave.cheney.net/2014/03/19/channel-axioms
+*/
+
+/*
 Channels are a typed, thread-safe queue.
 Channels allow different goroutines to communicate with each other.
 
@@ -62,6 +67,53 @@ func main() {
 		ch <- 2 // ok
 		ch <- 3 // ok
 		ch <- 4 // now blocks until someone reads
+*/
+
+/*
+CLOSING CHANNELS:
+Channels can be explicitly closed by a sender:
+
+	ch := make(chan int)
+
+	// do some stuff with the channel
+
+	close(ch)
+
+CHECKING IF A CHANNEL IS CLOSED:
+Similar to the ok value when accessing data in a map,
+receivers can check the ok value when receiving from a channel to test if a channel was closed.
+
+	v, ok := <-ch // channel is closed if ok is false
+
+Sending on a closed channel will cause a panic.
+Closing isn't necessary. There's nothing wrong with leaving channels open,
+they'll still be garbage collected if they're unused.
+You should close channels to indicate explicitly to a receiver that nothing else is going to come across.
+*/
+
+/*
+SELECT:
+Sometimes we have a single goroutine listening to multiple channels
+and want to process data in the order it comes through each channel.
+
+A select statement is used to listen to multiple channels at the same time.
+It is similar to a switch statement but for channels.
+
+	select {
+	case i, ok := <-chInts:
+		if ok {
+			fmt.Println(i)
+		}
+	case s, ok := <-chStrings:
+		if ok {
+			fmt.Println(s)
+		}
+	default:
+		// The default case in a select statement executes immediately if no other channel has a value ready.
+		// A default case stops the select statement from blocking
+	}
+
+The first channel with a value ready to be received will fire and its body will execute
 */
 
 package main
