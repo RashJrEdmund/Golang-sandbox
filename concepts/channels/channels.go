@@ -67,6 +67,14 @@ func main() {
 		ch <- 2 // ok
 		ch <- 3 // ok
 		ch <- 4 // now blocks until someone reads
+
+	you can use the len() function to get the number of items in the channel
+		and the cap() function to get the capacity of the channel
+
+		channel := make(chan int, 3)
+		channel <- 1
+		len(channel) // 1
+		cap(channel) // 3
 */
 
 /*
@@ -86,8 +94,7 @@ receivers can check the ok value when receiving from a channel to test if a chan
 	v, ok := <-ch // channel is closed if ok is false
 
 Sending on a closed channel will cause a panic.
-Closing isn't necessary. There's nothing wrong with leaving channels open,
-they'll still be garbage collected if they're unused.
+Closing isn't necessary. There's nothing wrong with leaving channels open, they'll still be garbage collected if they're unused.
 You should close channels to indicate explicitly to a receiver that nothing else is going to come across.
 */
 
@@ -114,6 +121,27 @@ It is similar to a switch statement but for channels.
 	}
 
 The first channel with a value ready to be received will fire and its body will execute
+*/
+
+/*
+READ ONLY CHANNELS:
+A channel can be marked as read-only by casting it from a chan to a <-chan type. For example:
+	func main() {
+		ch := make(chan int)
+		readCh(ch)
+	}
+
+	func readCh(ch <-chan int) {
+		// ch can only be read from
+		// in this function
+	}
+
+WRITE-ONLY CHANNELS:
+The same goes for write-only channels, but the arrow's position moves.
+	func writeCh(ch chan<- int) {
+		// ch can only be written to
+		// in this function
+	}
 */
 
 package main

@@ -1,4 +1,9 @@
 /*
+X POST:
+https://x.com/orashus/status/2083451489037558152
+*/
+
+/*
 Go routines are lightweight threads of execution.
 
 They are managed by the Go runtime and are not associated with any specific OS thread.
@@ -44,7 +49,7 @@ func main() {
 		{tableNumber: 5, prepTime: 4 * time.Second, order: "Fried Chicken"},
 	}
 
-	wg := sync.WaitGroup{}
+	wg := sync.WaitGroup{} // if you want to pass as an argument to a function, you need to pass a pointer to the wait group
 	start := time.Now()
 
 	// wg.Add(len(orders))
