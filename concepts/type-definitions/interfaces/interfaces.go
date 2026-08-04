@@ -1,6 +1,10 @@
 /*
 X POST
 https://x.com/orashus/status/2079313100776329590
+
+In go, Interfaces are just a named collection of method signatures.
+
+If another type like a struct has all these methods (the signatures), it implicitly implements that interface.
 */
 
 package main
