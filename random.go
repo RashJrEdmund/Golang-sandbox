@@ -1,8 +1,10 @@
 // USING THIS TO RUN RANDOM CODE AND SEE THE OUTPUT
 
-package random
+package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func main() {
 	const one int = 1
