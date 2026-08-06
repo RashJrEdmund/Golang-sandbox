@@ -66,7 +66,6 @@ type ParsedURL struct {
 }
 
 func main() {
-
 	url, err := url.Parse(completeUrl)
 	if err != nil {
 		log.Fatalf("Error parsing URL: %v", err)

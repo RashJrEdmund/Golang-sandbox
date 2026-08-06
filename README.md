@@ -1,5 +1,12 @@
 You may find some resources in [resource.md](/resources.md)
 
+## Index
+
+1. [My Posts On X](#my-posts-on-x)
+2. [Articles](#articles)
+3. [Others](#others)
+4. [JQ](#jq)
+
 ## My Posts On X
 
 1 - [Setup and entry points](https://x.com/orashus/status/2059721910754161037) (Nothing much)
@@ -79,4 +86,62 @@ the [Go Proverbs](https://go-proverbs.github.io/) are a beautiful collection of 
   Documentation is for users.
 
   Don't panic.
+```
+
+## JQ
+
+[jq](https://github.com/jqlang/jq) is a powerful command-line tool for processing JSON data. It's a favorite among developers for working with JSON because it can:
+
+- Parse JSON: easily read and extract data from JSON responses.
+- Manipulate JSON: modify JSON data on the fly.
+- Filter JSON: find exactly what you're looking for within large JSON structures.
+
+**Example**
+Suppose you have a JSON file named user.json with content:
+
+```json
+  {
+    "name": "John",
+    "age": 30,
+    "city": "New York"
+  }
+```
+
+To extract the name field, you would use the [object identifier index](https://jqlang.github.io/jq/manual/#object-identifier-index) like so:
+
+```bash
+  jq '.name' user.json
+  # "John"
+```
+
+To get a field from each element in an array you can use the [array/object value iterator](https://jqlang.github.io/jq/manual/#array-object-value-iterator)
+.[], which can in turn be combined with the identifier index like so:
+
+```bash
+  curl https://jsonplaceholder.typicode.com/users | jq '.[].username'
+  # "Bret"
+  # "Antonette"
+  # "Samantha"
+  # "Karianne"
+  # "Kamren"
+  # "Leopoldo_Corkery"
+  # "Elwyn.Skiles"
+  # "Maxime_Nienow"
+  # "Delphine"
+  # "Moriah.Stanton"
+```
+
+Multiple Fields
+
+```bash
+  curl https://jsonplaceholder.typicode.com/users/1 | jq '.name, .email'
+  # "Leanne Graham"
+  # "Sincere@april.biz"
+```
+
+- Another typical use is `curl` to parse JSON responses directly from HTTP requests. Eg.
+
+```bash
+  curl https://jsonplaceholder.typicode.com/users/1 | jq .username
+  # "Bret"
 ```

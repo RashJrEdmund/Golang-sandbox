@@ -4,6 +4,8 @@ const ProjectsUrl string = "https://api.boot.dev/v1/courses_rest_api/learn-http/
 
 const IssuesUrl string = "https://api.boot.dev/v1/courses_rest_api/learn-http/issues"
 
+// const UsersUrl string = "https://api.boot.dev/v1/courses_rest_api/learn-http/users"
+
 const UsersUrl string = "https://jsonplaceholder.typicode.com/users"
 
 const Delimiter string = "--------------------------------\n"

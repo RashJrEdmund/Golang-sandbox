@@ -19,6 +19,8 @@ THERE ARE TWO BASIC WAYS TO MAKE A REQUEST IN GO.
 
 	-> The verbose but more powerful way:
 		http.Client, http.NewRequest, and http.Client.Do
+
+The simple and less powerful way only has 2 request types, http.Get and http.Post. There is no http.Put, http.Delete, etc.
 */
 
 package main
@@ -41,8 +43,8 @@ func main() {
 	fmt.Println(Delimiter)
 
 	newComment := Comment{
-		Id:      "1",
-		UserId:  "1",
+		Id:      1,
+		UserId:  "user_1",
 		Comment: "This is a comment",
 	}
 
@@ -51,6 +53,12 @@ func main() {
 		"my-api-key-value-goes-here",
 		newComment,
 	)
+	fmt.Println("Comment created successfully")
+	fmt.Println(Delimiter)
+
+	deleteUser(url, "user_1", "my-api-key-value-goes-here")
+
+	fmt.Println("User deleted successfully")
 }
 
 func loadUsers() {
@@ -60,14 +68,14 @@ func loadUsers() {
 		Timeout: time.Second * 10,
 	}
 
-	req, err := http.NewRequest("GET", url, nil)
-
-	req.Header.Set("x-api-key", "my-api-key-value-goes-here")
+	req, err := http.NewRequest("GET", url, nil) // instead of using "GET", we can use the predefined constant http.MethodGet
 
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
+
+	req.Header.Set("x-api-key", "my-api-key-value-goes-here")
 
 	res, err := client.Do(req)
 
@@ -90,21 +98,21 @@ func loadUsers() {
 }
 
 type Comment struct {
-	Id      string `json:"id"`
+	Id      int    `json:"id"`
 	UserId  string `json:"user_id"`
 	Comment string `json:"comment"`
 }
 
 func createComment(url, apiKey string, commentStruct Comment) {
 	// encode our comment as json
-	jsonData, err := json.Marshal(commentStruct)
+	jsonBytes, err := json.Marshal(commentStruct)
 	if err != nil {
 		log.Fatalf("Error marshalling comment: %v", err)
 		return
 	}
 
 	// create a new request
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData)) // jsonData is the body of the request
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBytes)) // jsonData is the body of the request
 	if err != nil {
 		log.Fatalf("Error creating request: %v", err)
 		return
@@ -134,4 +142,29 @@ func createComment(url, apiKey string, commentStruct Comment) {
 	}
 
 	fmt.Printf("%+v\n", comment)
+}
+
+func deleteUser(baseURL, id, apiKey string) error {
+	fullURL := baseURL + "/" + id
+
+	req, err := http.NewRequest(http.MethodDelete, fullURL, nil)
+	if err != nil {
+		return fmt.Errorf("Error creating request: %w", err)
+	}
+
+	req.Header.Set("X-API-Key", apiKey)
+
+	client := &http.Client{}
+
+	res, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("Error sending request: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode > 299 {
+		return fmt.Errorf("The request to delete user with id %s was unsuccessful", id)
+	}
+
+	return nil
 }
