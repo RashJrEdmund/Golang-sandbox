@@ -44,7 +44,7 @@ import (
 func main() {
 	x := 42
 
-	p := &x // & -> address of x
+	p := &x // & -> address of x. p is of type: var p *int
 
 	fmt.Println(p)  // 0xc0000120a0 (an address)
 	fmt.Println(*p) // * -> 42 (dereferences p to get the value of x)

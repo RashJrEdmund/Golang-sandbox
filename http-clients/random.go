@@ -14,11 +14,11 @@ import (
 const issueURL = "https://api.boot.dev/v1/courses_rest_api/learn-http/issues"
 
 func main() {
-	issues, err := getIssueData(issueURL)
+	issueBytes, err := getIssueData(issueURL)
 	if err != nil {
 		log.Fatalf("Error getting issue data: %v", err)
 	}
-	prettyData, err := prettify(string(issues))
+	prettyData, err := prettify(issueBytes)
 	if err != nil {
 		log.Fatalf("Error prettifying data: %v", err)
 	}
@@ -46,9 +46,9 @@ func getIssueData(url string) ([]byte, error) {
 	return data, nil
 }
 
-func prettify(data string) (string, error) {
+func prettify(byteData []byte) (string, error) {
 	var prettyJSON bytes.Buffer
-	err := json.Indent(&prettyJSON, []byte(data), "", "  ")
+	err := json.Indent(&prettyJSON, byteData, "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("Error indenting JSON: %w", err)
 	}

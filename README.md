@@ -3,7 +3,7 @@ You may find some resources in [resource.md](/resources.md)
 ## Index
 
 1. [My Posts On X](#my-posts-on-x)
-2. [Articles](#articles)
+2. [Interesting Reads](#interesting-reads)
 3. [Others](#others)
 4. [JQ](#jq)
 
@@ -13,11 +13,11 @@ You may find some resources in [resource.md](/resources.md)
 
 2 - [Became a Boot.dev member](https://x.com/orashus/status/2075039939356438694)
 
-3 - [Naked Return Delima](https://x.com/orashus/status/2075553448787947675)
+3 - [Naked Return Dilemma](https://x.com/orashus/status/2075553448787947675)
 
 4 - [Type assertions](https://x.com/orashus/status/2077069684667543793)
 
-5 - [URL shortener](https://x.com/orashus/status/2078129654901198971)
+5 - [URL shortener Project](https://x.com/orashus/status/2078129654901198971)
 
 6 - [Interfaces](https://x.com/orashus/status/2079313100776329590)
 
@@ -35,7 +35,11 @@ You may find some resources in [resource.md](/resources.md)
 
 13 - [Escape analysis](https://x.com/orashus/status/2084364744845045981)
 
-## Articles
+## Interesting Reads
+
+- [The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Unicode and Character Sets (No Excuses!)](https://www.joelonsoftware.com/2003/10/08/the-absolute-minimum-every-software-developer-absolutely-positively-must-know-about-unicode-and-character-sets-no-excuses/)
+
+- [The Grug Brained Developer](https://grugbrain.dev/)
 
 ## Others
 
