@@ -1,3 +1,38 @@
+/*
+An http.Handler is any defined type that implements the set of methods defined
+by the Handler interface, specifically the ServeHTTP method.
+	-> http.Handler: https://pkg.go.dev/net/http#Handler
+
+ServeMux is an http.Handler.
+*/
+
+/*
+SEE WRITING struct of a request handler here
+https://pkg.go.dev/net/http#ResponseWriter.WriteHeader
+*/
+
+/*
+DIFFERENT WAYS TO REGISTER A HANDLER WITH A SERVER
+Read: https://pkg.go.dev/net/http#ServeMux
+
+- HANDLER
+You will typically use a Handler for more complex use cases, such as when you want to implement
+a custom router, middleware, or other custom logic.
+
+- HANDLERFUNC
+		You'll typically use a HandlerFunc when you want to implement a simple handler.
+		The HandlerFunc type is just a function that matches the ServeHTTP signature.
+*/
+
+/*
+The Request argument is fairly obvious: it contains all the information about the incoming request,
+	such as the HTTP method, path, headers, and body. We typically use it's pointer to access the request data.
+
+The ResponseWriter is less intuitive in my opinion. The response is an argument,
+	not a return type. Instead of returning a value all at once from the handler function,
+	we write the response to the ResponseWriter.
+*/
+
 package main
 
 import (
@@ -6,11 +41,6 @@ import (
 	"net/http"
 	"sync"
 )
-
-/*
-DIFFERENT WAYS TO REGISTER A HANDLER WITH A SERVER
-	Read: https://pkg.go.dev/net/http#ServeMux
-*/
 
 type data struct {
 	Message string `json:"message"`
@@ -56,7 +86,12 @@ func firstWay(wg *sync.WaitGroup) { // using the serveMux.Handle with a struct m
 		Handler: serveMux,
 	}
 
-	serveMux.Handle("/first-way", userHandler{})
+	serveMux.Handle(
+		"/first-way",
+		LoggerMiddleware(
+			userHandler{},
+		),
+	)
 
 	fmt.Println("First way: Server is running on port 8080")
 	fmt.Println(Delimiter)
@@ -93,7 +128,12 @@ func secondWay(wg *sync.WaitGroup) {
 		Handler: serveMux,
 	}
 
-	serveMux.Handle("/second-way", http.HandlerFunc(secondWayHandler))
+	serveMux.Handle(
+		"/second-way",
+		LoggerMiddleware(
+			http.HandlerFunc(secondWayHandler),
+		),
+	)
 
 	fmt.Println("Second way: Server is running on port 8081")
 	fmt.Println(Delimiter)
@@ -141,7 +181,7 @@ func thirdWay(wg *sync.WaitGroup) {
 		Handler: serveMux,
 	}
 
-	serveMux.HandleFunc("/third-way", thirdWayHandler)
+	serveMux.HandleFunc("/third-way", thirdWayHandler) // use the other styles to wrap the middleware
 
 	fmt.Println("Third way: Server is running on port 8082")
 	fmt.Println(Delimiter)

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <title>Go File Server</title>
+</head>
+
+<body class="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
+  <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md flex flex-col gap-6 items-center">
+    <h1 class="text-3xl font-bold text-gray-800">Welcome to File Server</h1>
+    <div id="file-list-container" class="flex flex-col gap-4 w-full">
+      <a href="/index.html"
+        class="block w-full text-center bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition-colors duration-200 shadow">
+        index.html
+      </a>
+      <a href="/shadcn.jpeg"
+        class="block w-full text-center bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded transition-colors duration-200 shadow">
+        shadcn.jpeg
+      </a>
+    </div>
+  </div>
+</body>
+
+<script>
+  const body = document.getElementById("file-list-container");
+
+  body.innerHTML += `
+    <a href="/#" class="block w-full text-center bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded transition-colors duration-200 shadow">
+      script.js (added by the script)
+    </a>
+  `
+</script>
+
+</html>

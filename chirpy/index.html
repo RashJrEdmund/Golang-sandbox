@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chirpy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --color-ink: #2c2c2c;
+      --color-ink-deep: #1f1f1f;
+      --color-sky: #4a8fd4;
+      --color-sky-deep: #3a75b0;
+      --color-ember: #e07a3d;
+      --color-snow: #f7f4ef;
+      --font-display: "Fraunces", Georgia, serif;
+      --font-body: "Outfit", sans-serif;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(1.25rem);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes reveal {
+      from {
+        opacity: 0;
+        transform: translateX(1.5rem) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+    }
+
+    .animate-rise {
+      animation: rise 0.8s ease-out both;
+    }
+
+    .animate-reveal {
+      animation: reveal 1s ease-out both;
+    }
+
+    .delay-1 { animation-delay: 0.15s; }
+    .delay-2 { animation-delay: 0.3s; }
+    .delay-3 { animation-delay: 0.45s; }
+  </style>
+</head>
+
+<body class="m-0 min-h-screen bg-ink font-body text-snow antialiased">
+  <main
+    class="relative grid min-h-screen overflow-hidden bg-[radial-gradient(ellipse_at_15%_20%,rgba(74,143,212,0.16),transparent_42%),radial-gradient(ellipse_at_85%_75%,rgba(224,122,61,0.12),transparent_40%),linear-gradient(155deg,var(--color-ink-deep),var(--color-ink)_50%,#353535)] lg:grid-cols-2"
+  >
+    <section class="relative z-10 flex flex-col justify-center gap-5 px-8 py-16 sm:px-12 lg:px-16 xl:px-24">
+      <p class="animate-rise font-display text-5xl font-bold tracking-wide text-snow sm:text-6xl lg:text-7xl">
+        Chirpy
+      </p>
+      <h1 class="animate-rise delay-1 max-w-md font-display text-2xl font-semibold leading-snug text-snow/95 sm:text-3xl">
+        Short posts. Loud opinions. Tiny wings.
+      </h1>
+      <p class="animate-rise delay-2 max-w-sm text-base leading-relaxed text-snow/70 sm:text-lg">
+        A lightweight place to share what's chirping in your head.
+      </p>
+      <div class="animate-rise delay-3 pt-2">
+        <a
+          href="#chirps"
+          class="inline-block bg-sky px-6 py-3 text-sm font-semibold tracking-wide text-snow transition duration-300 hover:translate-y-[-2px] hover:bg-sky-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+        >
+          Start chirping
+        </a>
+      </div>
+    </section>
+
+    <section class="relative flex items-center justify-center px-6 pb-12 lg:px-10 lg:pb-0">
+      <img
+        src="./assets/logo.png"
+        alt="Chirpy logo — a songbird mid-chirp"
+        class="animate-reveal w-full max-w-md sm:max-w-lg lg:max-w-xl"
+        width="256"
+        height="256"
+      >
+    </section>
+  </main>
+</body>
+
+</html>
