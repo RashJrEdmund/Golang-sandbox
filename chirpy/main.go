@@ -14,7 +14,9 @@ import (
 	"os"
 	"sync/atomic"
 
+	"github.com/RashJrEdmund/go-sandbox/chirpy/internal/auth"
 	"github.com/RashJrEdmund/go-sandbox/chirpy/internal/database"
+	"github.com/RashJrEdmund/go-sandbox/chirpy/internal/utils"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 
@@ -29,6 +31,7 @@ type apiConfig struct {
 	fileServerHits atomic.Int32
 	dbQueries      *database.Queries
 	platform       string
+	jwtSecret      string
 }
 
 func (apiCfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
@@ -51,7 +54,7 @@ func (apiCfg *apiConfig) metricsHandler(w http.ResponseWriter, r *http.Request) 
 		</html>
 	`, apiCfg.fileServerHits.Load())
 
-	RespondWithPlainText(w, http.StatusOK, restTemplate)
+	utils.RespondWithPlainText(w, http.StatusOK, restTemplate)
 }
 
 func (apiCfg *apiConfig) resetHandler(w http.ResponseWriter, r *http.Request) {
@@ -59,75 +62,206 @@ func (apiCfg *apiConfig) resetHandler(w http.ResponseWriter, r *http.Request) {
 	resText := fmt.Sprintf("Hits: %d", apiCfg.fileServerHits.Load())
 
 	if apiCfg.platform != "dev" {
-		RespondWithPlainText(w, http.StatusForbidden, "Forbidden")
+		utils.RespondWithPlainText(w, http.StatusForbidden, "Forbidden")
 		return
 	}
 
-	apiCfg.dbQueries.DeleteAllUsers(r.Context())
-	RespondWithPlainText(w, http.StatusOK, resText)
+	err := apiCfg.dbQueries.DeleteAllUsers(r.Context())
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Something went wrong. Failed to reset users.")
+		return
+	}
+
+	utils.RespondWithPlainText(w, http.StatusOK, resText)
 }
 
 func (apiCfg *apiConfig) createUserHandler(w http.ResponseWriter, r *http.Request) {
-	var reqData CreateUserRequest
+	var reqData utils.CreateUserRequest
 
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&reqData); err != nil {
-		RespondWithError(w, http.StatusBadRequest, "Something went wrong. Invalid JSON.")
+		utils.RespondWithError(w, http.StatusBadRequest, "Something went wrong. Invalid JSON.")
 		return
 	}
 
-	newUser, err := apiCfg.dbQueries.CreateUser(r.Context(), reqData.Email)
+	hashedPassword, err := auth.HashPassword(reqData.Password)
+
 	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, "Something went wrong. Failed to create user.")
+		utils.RespondWithError(w, http.StatusInternalServerError, "Something went wrong. Failed to hash password.")
 		return
 	}
 
-	fmt.Println("New User", newUser)
+	newUser, err := apiCfg.dbQueries.CreateUser(
+		r.Context(),
+		database.CreateUserParams{
+			Email:          reqData.Email,
+			HashedPassword: hashedPassword,
+		},
+	)
 
-	userResp := CreateUserResponse{
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Something went wrong. Failed to create user.")
+		return
+	}
+
+	userResp := utils.UserResponse{
 		ID:        newUser.ID.String(),
 		Email:     newUser.Email,
 		CreatedAt: newUser.CreatedAt,
 		UpdatedAt: newUser.UpdatedAt,
 	}
 
-	RespondWithJSON(w, http.StatusCreated, userResp)
+	utils.RespondWithJSON(w, http.StatusCreated, userResp)
 }
 
-func (apiCfg *apiConfig) createChirpHandler(w http.ResponseWriter, r *http.Request) {
-	var reqData CreateChirpRequest
+func (apiCfg *apiConfig) loginHandler(w http.ResponseWriter, r *http.Request) {
+	var reqData utils.LoginRequest
 
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&reqData); err != nil {
-		RespondWithError(w, http.StatusBadRequest, "Something went wrong. Invalid JSON.")
+		utils.RespondWithError(w, http.StatusBadRequest, "Something went wrong. Invalid JSON.")
+		return
+	}
+
+	user, err := apiCfg.dbQueries.GetUserByEmail(r.Context(), reqData.Email)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid email or password.")
+		return
+	}
+
+	isValid, err := auth.CheckPasswordHash(reqData.Password, user.HashedPassword)
+	if !isValid || err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid email or password.")
+		return
+	}
+
+	token, err := auth.MakeJWT(
+		user.ID,
+		apiCfg.jwtSecret,
+	)
+
+	refreshToken, err := apiCfg.dbQueries.CreateRefreshToken(
+		r.Context(),
+		database.CreateRefreshTokenParams{
+			Token:  auth.MakeRefreshToken(),
+			UserID: user.ID,
+		},
+	)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Something went wrong. Failed to create refresh token.")
+		return
+	}
+
+	userResp := utils.LoginResponse{
+		Token:        token,
+		RefreshToken: refreshToken.Token,
+		UserResponse: utils.UserResponse{
+			ID:        user.ID.String(),
+			Email:     user.Email,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+		},
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, userResp)
+}
+
+func (apiCfg *apiConfig) refreshTokenHandler(w http.ResponseWriter, r *http.Request) {
+	refreshToken, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid token.")
+		return
+	}
+
+	refreshTokenDB, err := apiCfg.dbQueries.GetRefreshTokenByToken(r.Context(), refreshToken)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid token.")
+		return
+	}
+
+	if refreshTokenDB.RevokedAt.Valid {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Token has been revoked.")
+		return
+	}
+
+	user, err := apiCfg.dbQueries.GetUserByID(r.Context(), refreshTokenDB.UserID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid token.")
+		return
+	}
+
+	// create new access token with jwt.
+
+	newAccessToken, err := auth.MakeJWT(
+		user.ID,
+		apiCfg.jwtSecret,
+	)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Something went wrong. Failed to create access token.")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, utils.RefreshTokenResponse{Token: newAccessToken})
+	return
+}
+
+func (apiCfg *apiConfig) revokeTokenHandler(w http.ResponseWriter, r *http.Request) {
+	refreshToken, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid token.")
+		return
+	}
+
+	err = apiCfg.dbQueries.RevokeRefreshToken(r.Context(), refreshToken)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Something went wrong. Failed to revoke token.")
+		return
+	}
+
+	utils.RespondWithJSON(w, http.StatusNoContent, utils.RefreshTokenResponse{Token: "Token revoked"})
+	return
+}
+
+func (apiCfg *apiConfig) createChirpHandler(w http.ResponseWriter, r *http.Request) {
+	var reqData utils.CreateChirpRequest
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&reqData); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Something went wrong. Invalid JSON.")
+		return
+	}
+
+	bearerToken, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid token.")
+		return
+	}
+
+	userIDFromToken, err := auth.ValidateJWT(bearerToken, apiCfg.jwtSecret)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid token.")
 		return
 	}
 
 	if len(reqData.Body) > 140 {
-		RespondWithError(w, http.StatusBadRequest, "Chirp is too long")
+		utils.RespondWithError(w, http.StatusBadRequest, "Chirp is too long")
 		return
 	}
 
-	reqData.Body = RemoveProfanity(reqData.Body)
-
-	userID, err := uuid.Parse(reqData.UserId) // convert string to uuid
-	if err != nil {
-		RespondWithError(w, http.StatusBadRequest, "Something went wrong. Invalid user_id.")
-		return
-	}
+	reqData.Body = utils.RemoveProfanity(reqData.Body)
 
 	newChirp, err := apiCfg.dbQueries.CreateChirp(r.Context(),
 		database.CreateChirpParams{
 			Body:   reqData.Body,
-			UserID: userID,
+			UserID: userIDFromToken,
 		})
 
 	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, "Something went wrong. Failed to create chirp.")
+		utils.RespondWithError(w, http.StatusInternalServerError, "Something went wrong. Failed to create chirp.")
 		return
 	}
 
-	chirpResp := CreateChirpResponse{
+	chirpResp := utils.CreateChirpResponse{
 		ID:        newChirp.ID.String(),
 		Body:      newChirp.Body,
 		UserId:    newChirp.UserID.String(),
@@ -135,7 +269,54 @@ func (apiCfg *apiConfig) createChirpHandler(w http.ResponseWriter, r *http.Reque
 		UpdatedAt: newChirp.UpdatedAt,
 	}
 
-	RespondWithJSON(w, http.StatusCreated, chirpResp)
+	utils.RespondWithJSON(w, http.StatusCreated, chirpResp)
+}
+
+func (apiCfg *apiConfig) getChirpsHandler(w http.ResponseWriter, r *http.Request) {
+	chirps, err := apiCfg.dbQueries.ListAllChirps(r.Context())
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Something went wrong. Failed to get chirps.")
+		return
+	}
+
+	chirpResp := []utils.CreateChirpResponse{}
+	for _, chirp := range chirps {
+		chirpResp = append(chirpResp, utils.CreateChirpResponse{
+			ID:        chirp.ID.String(),
+			Body:      chirp.Body,
+			UserId:    chirp.UserID.String(),
+			CreatedAt: chirp.CreatedAt,
+			UpdatedAt: chirp.UpdatedAt,
+		})
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, chirpResp)
+}
+
+func (apiCfg *apiConfig) getChirpByIDHandler(w http.ResponseWriter, r *http.Request) {
+	chirpId := r.PathValue("chirpId") // see: https://pkg.go.dev/net/http#Request.PathValue
+
+	chirpIdUUID, err := uuid.Parse(chirpId)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Something went wrong. Invalid chirp_id.")
+		return
+	}
+
+	newChirp, err := apiCfg.dbQueries.GetChirpByID(r.Context(), chirpIdUUID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusNotFound, "Failed to get chirp.")
+		return
+	}
+
+	chirpResp := utils.CreateChirpResponse{
+		ID:        newChirp.ID.String(),
+		Body:      newChirp.Body,
+		UserId:    newChirp.UserID.String(),
+		CreatedAt: newChirp.CreatedAt,
+		UpdatedAt: newChirp.UpdatedAt,
+	}
+
+	utils.RespondWithJSON(w, http.StatusOK, chirpResp)
 }
 
 // NON-API_CONFIG METHOD ROUTE HANDLERS
@@ -153,6 +334,7 @@ func main() {
 	dbURL := os.Getenv("DB_URL")
 	DB, err := sql.Open("postgres", dbURL)
 	PLATFORM := os.Getenv("PLATFORM")
+	JWT_SECRET := os.Getenv("JWT_SECRET")
 
 	if err != nil {
 		log.Fatal(err)
@@ -175,6 +357,7 @@ func main() {
 		fileServerHits: atomic.Int32{},
 		dbQueries:      database.New(DB),
 		platform:       PLATFORM,
+		jwtSecret:      JWT_SECRET,
 	}
 
 	/*
@@ -194,8 +377,13 @@ func main() {
 	mu.HandleFunc("GET /api/healthz/", healthzHandler)
 
 	mu.HandleFunc("POST /api/users", apiCfg.createUserHandler)
+	mu.HandleFunc("POST /api/login", apiCfg.loginHandler)
+	mu.HandleFunc("POST /api/refresh", apiCfg.refreshTokenHandler)
+	mu.HandleFunc("POST /api/revoke", apiCfg.revokeTokenHandler)
 
 	mu.HandleFunc("POST /api/chirps", apiCfg.createChirpHandler)
+	mu.HandleFunc("GET /api/chirps", apiCfg.getChirpsHandler)
+	mu.HandleFunc("GET /api/chirps/{chirpId}", apiCfg.getChirpByIDHandler)
 
 	fmt.Printf("Serving files from %s on port %s\n", rootDir, PORT)
 	log.Fatal(server.ListenAndServe())

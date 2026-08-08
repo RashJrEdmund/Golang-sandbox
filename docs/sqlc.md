@@ -6,6 +6,8 @@ These and the goose.md docs are written to reference the chirpy projects
 _<https://docs.sqlc.dev/en/latest/tutorials/getting-started-postgresql.html>_
 _<https://sqlc.dev>_
 
+**Checkout the storage course on http-servers on boot.dev to find more if not satisfied**
+
 SQLC is a Go program that generates Go code from SQL queries.
 It's not exactly an ORM, but rather a tool that makes working with raw SQL easy and type-safe.
 
