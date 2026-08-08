@@ -1,7 +1,6 @@
-**You may find some resources in:**
+**You may find some resources in docs:**
 
-- [resource.md](./docs/resources.md)
-- [some postgresql commands](./docs/postgresql-cmds.md)
+- [docs](./docs/README.md)
 
 ## Index
 

@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 
 	"github.com/RashJrEdmund/go-sandbox/chirpy/internal/database"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 
 	_ "github.com/lib/pq"
@@ -109,7 +110,32 @@ func (apiCfg *apiConfig) createChirpHandler(w http.ResponseWriter, r *http.Reque
 
 	reqData.Body = RemoveProfanity(reqData.Body)
 
-	RespondWithJSON(w, http.StatusOK, ValidateChirpResponse{CleanedBody: reqData.Body})
+	userID, err := uuid.Parse(reqData.UserId) // convert string to uuid
+	if err != nil {
+		RespondWithError(w, http.StatusBadRequest, "Something went wrong. Invalid user_id.")
+		return
+	}
+
+	newChirp, err := apiCfg.dbQueries.CreateChirp(r.Context(),
+		database.CreateChirpParams{
+			Body:   reqData.Body,
+			UserID: userID,
+		})
+
+	if err != nil {
+		RespondWithError(w, http.StatusInternalServerError, "Something went wrong. Failed to create chirp.")
+		return
+	}
+
+	chirpResp := CreateChirpResponse{
+		ID:        newChirp.ID.String(),
+		Body:      newChirp.Body,
+		UserId:    newChirp.UserID.String(),
+		CreatedAt: newChirp.CreatedAt,
+		UpdatedAt: newChirp.UpdatedAt,
+	}
+
+	RespondWithJSON(w, http.StatusCreated, chirpResp)
 }
 
 // NON-API_CONFIG METHOD ROUTE HANDLERS
