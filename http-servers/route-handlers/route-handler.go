@@ -195,14 +195,15 @@ something like: mux.Handle("/hello", http.HandlerFunc(hello))
 */
 
 // --------------------------------------------------------------
-// NESTED ROUTERS
+// NESTED ROUTERS.
+// THERE'S A BUG HERE AND IT DOES NOT WORK AS EXPECTED. FIX AS TODO
 // --------------------------------------------------------------
 
 /*
 	Here's something cool
 
 // Because *http.ServeMux implements http.Handler, you can nest routers:
-The admin mux is passed directly to Handle because it satisfies the http.Handler interface.
+The users mux is passed directly to Handle because it satisfies the http.Handler interface.
 */
 
 func usersHandler(w http.ResponseWriter, _ *http.Request) {
@@ -221,11 +222,11 @@ func usersHandler(w http.ResponseWriter, _ *http.Request) {
 func nestedRouters(wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	adminMu := http.NewServeMux()
-	adminMu.HandleFunc("/users", usersHandler)
+	usersMu := http.NewServeMux()
+	usersMu.HandleFunc("/users", usersHandler)
 
 	rootMu := http.NewServeMux()
-	rootMu.Handle("/admin/", adminMu)
+	rootMu.Handle("/admin/", usersMu)
 
 	server := http.Server{
 		Addr:    ":8083", // If empty, ":http" (port 80) is used.

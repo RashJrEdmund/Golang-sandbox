@@ -1,4 +1,7 @@
-You may find some resources in [resource.md](/resources.md)
+**You may find some resources in:**
+
+- [resource.md](/resources.md)
+- [some postgresql commands](./DATABASE.md)
 
 ## Index
 

@@ -1,5 +1,3 @@
-
-
 ## This is my official golang sandbox repo
 
 _You could simply Study on [Boot.dev](https://www.boot.dev) or_
