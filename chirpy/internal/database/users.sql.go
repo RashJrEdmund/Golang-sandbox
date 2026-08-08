@@ -9,7 +9,7 @@ import (
 	"context"
 )
 
-const createUser = `-- name: CreateUser :one
+const createUserSQL = `-- name: CreateUser :one
 INSERT INTO users (id, created_at, updated_at, email)
 VALUES (
   gen_random_uuid(),
@@ -21,7 +21,7 @@ RETURNING id, created_at, updated_at, email
 `
 
 func (q *Queries) CreateUser(ctx context.Context, email string) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, email)
+	row := q.db.QueryRowContext(ctx, createUserSQL, email)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -30,4 +30,13 @@ func (q *Queries) CreateUser(ctx context.Context, email string) (User, error) {
 		&i.Email,
 	)
 	return i, err
+}
+
+const deleteAllUsersSQL = `-- name: DeleteAllUsers :exec
+DELETE FROM users
+`
+
+func (q *Queries) DeleteAllUsers(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, deleteAllUsersSQL)
+	return err
 }

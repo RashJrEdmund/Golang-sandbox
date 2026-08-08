@@ -5,7 +5,13 @@ The standard encoding/json package uses tags to map JSON fields to struct fields
 */
 
 /*
-	-> defer res.Body.Close() ensures that the response body is properly closed after reading. Not doing so can cause memory issues.
+	-> defer res.Body.Close() ensures that the response body is properly closed after reading.
+		-> Not doing so can cause memory issues.
+		-> This is particularly important for large responses.
+
+	-> On the backend, the server is responsible for closing the request body.
+		-> so no need for defer req.Body.Close() over there
+
 	-> io.ReadAll reads the response body into a slice of bytes []byte called data
 */
 

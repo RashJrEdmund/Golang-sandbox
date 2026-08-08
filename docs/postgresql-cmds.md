@@ -3,8 +3,6 @@
 1. [Postgresql commands](#postgresql-commands)
 2. [Postgresql query commands](#postgresql-query-commands)
 3. [Extra postgresql commands](#extra-postgresql-commands)
-4. [Using goose for migrations](#goose)
-5. [Using SQLC: Go code from SQL Queries](#sqlc)
 6. [Popular Dbs, and engines](#popular-databases)
 
 ## POSTGRESQL COMMANDS
@@ -131,44 +129,6 @@ From here you can run queries like
 
 ```sql
   SELECT pg_terminate_backend(pid);
-```
-
-## Goose
-
-_<https://github.com/pressly/goose>_
-
-  Goose is a database migration cli tool written in Go
-  [Installing](https://github.com/pressly/goose#install) using go
-
-```bash
-  go install github.com/pressly/goose/v3/cmd/goose@latest
-```
-
-### To run migrations
-
-cd into the sql/schema directory and run:
-
-```bash
-  goose postgres <connection_string> up
-
-  # example:
-  # goose postgres "postgres://postgres:postgres@localhost:5432/chirpy" up
-  # connection string format is: protocol://username:password@host:port/database
-```
-
-## SQLC
-
-_<https://docs.sqlc.dev/en/latest/tutorials/getting-started-postgresql.html>_
-_<https://sqlc.dev>_
-
-SQLC is a Go program that generates Go code from SQL queries. It's not exactly an ORM, but rather a tool that makes working with raw SQL easy and type-safe.
-
-- We can be using Goose to manage our database migrations (the schema), and then using SQLC to generate Go code that our application can use to interact with the database (run queries).
-
-[Installing](https://docs.sqlc.dev/en/latest/overview/install.html) using go
-
-```bash
-  go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 ```
 
 ## Popular Databases

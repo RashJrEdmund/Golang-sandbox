@@ -27,6 +27,7 @@ type apiConfig struct {
 	// an integer value across multiple goroutines (HTTP requests). https://pkg.go.dev/sync/atomic#Int32
 	fileServerHits atomic.Int32
 	dbQueries      *database.Queries
+	platform       string
 }
 
 func (apiCfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
@@ -40,37 +41,78 @@ func (apiCfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
 }
 
 func (apiCfg *apiConfig) metricsHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Header().Add("Content-Type", "text/html; charset=utf-8")
-
 	restTemplate := fmt.Sprintf(`
-	<html>
-		<body>
-			<h1>Welcome, Chirpy Admin</h1>
-			<p>Chirpy has been visited %d times!</p>
-		</body>
-	</html>
+		<html>
+			<body>
+				<h1>Welcome, Chirpy Admin</h1>
+				<p>Chirpy has been visited %d times!</p>
+			</body>
+		</html>
 	`, apiCfg.fileServerHits.Load())
-	w.Write([]byte(restTemplate))
+
+	RespondWithPlainText(w, http.StatusOK, restTemplate)
 }
 
 func (apiCfg *apiConfig) resetHandler(w http.ResponseWriter, r *http.Request) {
 	apiCfg.fileServerHits.Store(0)
-
 	resText := fmt.Sprintf("Hits: %d", apiCfg.fileServerHits.Load())
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-	w.Write([]byte(resText))
+	if apiCfg.platform != "dev" {
+		RespondWithPlainText(w, http.StatusForbidden, "Forbidden")
+		return
+	}
+
+	apiCfg.dbQueries.DeleteAllUsers(r.Context())
+	RespondWithPlainText(w, http.StatusOK, resText)
 }
 
-// ROUTE HANDLERS
+func (apiCfg *apiConfig) createUserHandler(w http.ResponseWriter, r *http.Request) {
+	var reqData CreateUserRequest
 
-type rootHandler struct{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&reqData); err != nil {
+		RespondWithError(w, http.StatusBadRequest, "Something went wrong. Invalid JSON.")
+		return
+	}
 
-func (rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello, World!"))
+	newUser, err := apiCfg.dbQueries.CreateUser(r.Context(), reqData.Email)
+	if err != nil {
+		RespondWithError(w, http.StatusInternalServerError, "Something went wrong. Failed to create user.")
+		return
+	}
+
+	fmt.Println("New User", newUser)
+
+	userResp := CreateUserResponse{
+		ID:        newUser.ID.String(),
+		Email:     newUser.Email,
+		CreatedAt: newUser.CreatedAt,
+		UpdatedAt: newUser.UpdatedAt,
+	}
+
+	RespondWithJSON(w, http.StatusCreated, userResp)
 }
+
+func (apiCfg *apiConfig) createChirpHandler(w http.ResponseWriter, r *http.Request) {
+	var reqData CreateChirpRequest
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&reqData); err != nil {
+		RespondWithError(w, http.StatusBadRequest, "Something went wrong. Invalid JSON.")
+		return
+	}
+
+	if len(reqData.Body) > 140 {
+		RespondWithError(w, http.StatusBadRequest, "Chirp is too long")
+		return
+	}
+
+	reqData.Body = RemoveProfanity(reqData.Body)
+
+	RespondWithJSON(w, http.StatusOK, ValidateChirpResponse{CleanedBody: reqData.Body})
+}
+
+// NON-API_CONFIG METHOD ROUTE HANDLERS
 
 // ------------------Health Handler----------------------------------------
 
@@ -80,37 +122,17 @@ func healthzHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("OK")) // w.Write([]byte(http.StatusText(http.StatusOK)))
 }
 
-func validateChirpHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json; charset=utf-8")
-
-	var data Chirp
-
-	decoder := json.NewDecoder(r.Body)
-
-	if err := decoder.Decode(&data); err != nil {
-		RespondWithError(w, http.StatusBadRequest, "Something went wrong")
-		return
-	}
-
-	if len(data.Body) > 140 {
-		RespondWithError(w, http.StatusBadRequest, "Chirp is too long")
-		return
-	}
-
-	RemoveProfanity(&data)
-
-	RespondWithJSON(w, http.StatusOK, ValidateChirpResponse{CleanedBody: data.Body})
-}
-
 func main() {
 	godotenv.Load()
 	dbURL := os.Getenv("DB_URL")
-	db, err := sql.Open("postgres", dbURL)
+	DB, err := sql.Open("postgres", dbURL)
+	PLATFORM := os.Getenv("PLATFORM")
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer db.Close()
+	defer DB.Close()
 
 	mu := http.NewServeMux()
 
@@ -125,7 +147,8 @@ func main() {
 
 	apiCfg := &apiConfig{
 		fileServerHits: atomic.Int32{},
-		dbQueries:      database.New(db),
+		dbQueries:      database.New(DB),
+		platform:       PLATFORM,
 	}
 
 	/*
@@ -144,7 +167,9 @@ func main() {
 
 	mu.HandleFunc("GET /api/healthz/", healthzHandler)
 
-	mu.HandleFunc("POST /api/validate_chirp/", validateChirpHandler)
+	mu.HandleFunc("POST /api/users", apiCfg.createUserHandler)
+
+	mu.HandleFunc("POST /api/chirps", apiCfg.createChirpHandler)
 
 	fmt.Printf("Serving files from %s on port %s\n", rootDir, PORT)
 	log.Fatal(server.ListenAndServe())

@@ -33,6 +33,15 @@ The ResponseWriter is less intuitive in my opinion. The response is an argument,
 	we write the response to the ResponseWriter.
 */
 
+/*
+Incoming server request: (client side)
+	The HTTP server generally handles closing r.Body for you after the handler returns.
+	You don't strictly need to close it yourself.
+
+Outgoing HTTP response: (server side)
+	Unlike for http-servers, When you call client.Do(), your code is responsible for closing res.Body.
+*/
+
 package main
 
 import (

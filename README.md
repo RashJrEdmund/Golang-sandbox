@@ -1,7 +1,7 @@
 **You may find some resources in:**
 
-- [resource.md](/resources.md)
-- [some postgresql commands](./DATABASE.md)
+- [resource.md](./docs/resources.md)
+- [some postgresql commands](./docs/postgresql-cmds.md)
 
 ## Index
 
